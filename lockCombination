@@ -1,0 +1,48 @@
+class Lock { //Problem 1
+public:
+    Lock (const int one , const int two , const int three): numOne(one), numTwo(two) , numThree(three), status(false){}
+    
+    void changeCombo(const int& currOne, const int& currTwo , const int& currThree, const int& newOne,
+        const int& newTwo , const int& newThree){
+         if ( currOne == numOne && currTwo == numTwo && currThree == numThree){
+             numOne = newOne;
+             numTwo = newTwo;
+             numThree = newThree;
+             cout << "Successfully changed combination." << endl;
+         }
+         else {
+             cout << "Incorrect Combination. Cannot change combination. " << endl;
+         }
+    }
+    void open(const int& newOne, const int& newTwo , const int& newThree ){
+        if ( newOne == numOne && newTwo == numTwo && numThree == newThree){ //checks if the combo is correct
+            if (!status){ // checks if the lock is already open
+                status = true;
+                cout << "The lock is open." << endl;
+            }
+            else {
+            cout << "The lock is already opened." << endl;
+            }
+        }
+        else{
+            cout << "The lock combination is wrong. " << endl;
+        }
+    }
+    void close () {
+        status = false;
+        cout << "The lock is closed. " << endl;
+    }
+private:
+    int numOne;
+    int numTwo;
+    int numThree;
+    bool status;
+    
+};
+int main() {
+    Lock lockOne(4,15,5);
+    lockOne.open(4,15,5);
+    lockOne.close();
+    lockOne.changeCombo(4, 15, 5, 45, 2, 4);
+    lockOne.open(45,2,4);
+    }
