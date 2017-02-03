@@ -1,0 +1,248 @@
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
+using namespace std;
+
+
+class Protector;
+class Noble;
+class Lord;
+
+
+class Protector{
+public:
+    Protector(const string& name, const double& str): name(name), Master(nullptr), str(str), isDead(false){}
+    void display() const{
+        cout << name <<" : " << str << endl;
+    }
+    virtual void uniqueAction() = 0; // makes class abstract
+    
+    void damage(double propDmg){
+        str = str - (propDmg * str);
+    }
+    bool lifeStat(){
+        return isDead;
+    }
+    bool hire(Lord* employer){
+        if (Master == nullptr && isDead != false){
+            Master = employer;
+            return true;
+        }
+        
+        return false;
+    }
+    void die(){
+        isDead = true;
+    }
+    
+    void fire(){
+        Master = nullptr;
+    }
+    string getName() const{
+        return name;
+    }
+    double getStrength() const{
+        return str;
+    }
+    Lord* getMaster() const{
+        return Master;
+    }
+protected:
+private:
+    string name;
+    bool isDead;
+    Lord* Master;
+    double str;
+};
+
+class Noble{
+public:
+    Noble(const string& name) : name(name), isDead(false){}
+    virtual void display() const = 0; //pure virtual
+    virtual void kill() = 0; //pure virtual
+    virtual void damage(const double& proportion) = 0; // pure virtual
+    virtual double getStrength() const = 0;
+    void battle(Noble& opponent){
+        cout << name << " battles " << opponent.getName() << endl;
+        double ourStrength = getStrength();
+        double theirStrength = opponent.getStrength();
+        if (theirStrength == 0 && ourStrength == 0){
+            cout << "Oh, NO!  They're both dead!  Yuck!" << endl;
+        }
+        else if (opponent.dead()){
+            cout << "He's dead, " << name << endl;
+        }
+        else if (dead()){
+            cout << "He's dead, " << opponent.getName() << endl;
+        }
+        else if (theirStrength == ourStrength){
+            kill();
+            opponent.kill();
+            cout << "Mutual Annihalation : " << name << " and " << opponent.getName() << " die at each other's hands" << endl;
+        }
+        else if (theirStrength > ourStrength){
+            double proportion = ourStrength / theirStrength;
+            opponent.damage(proportion);
+            kill();
+            cout << opponent.getName() << " defeats " << name << endl;
+        }
+        else{
+            double proportion = theirStrength / ourStrength;
+            damage(proportion);
+           opponent.kill();
+            cout << name << " defeats " << opponent.getName() << endl;
+        }
+    }
+    string getName() const {
+        return name;
+    }
+protected:
+    bool dead(){
+        return isDead;
+    }
+    void die(){
+        isDead = true;
+    }
+private:
+    const string name;
+    bool isDead;
+};
+
+class Lord : public Noble{
+public:
+    Lord(const string& nameParam) :
+    Noble(nameParam){}
+    void display() const {
+        cout << getName() << " has an army of " << pVect.size() << endl;
+        for (size_t i = 0; i < pVect.size(); ++i){
+            cout << "\t";
+            pVect[i]->display();
+            cout << endl;
+        }
+    }
+    void kill(){
+        for (size_t i = 0; i < pVect.size(); ++i){
+            if (pVect[i]->getStrength() >= 1){
+                pVect[i]->uniqueAction();
+            }
+            pVect[i]->die();
+        }
+        die();
+    }
+    void hires(Protector& warrior){
+        if (!dead() && warrior.hire(this)){
+            pVect.push_back(&warrior);
+        }
+    }
+    void fire(Protector& warrior){
+        for (size_t i = 0; i < pVect.size(); i++){
+            if (&warrior == pVect[i]){
+                pVect[i] = pVect[(pVect.size() - 1)];
+                pVect.pop_back();
+                warrior.fire();
+                cout << warrior.getName() << ", you're fired! -- " << getName() << endl;
+            }
+        }
+    }
+    void damage(const double& proportion){
+        for (size_t i = 0; i < pVect.size(); ++i){
+            if (pVect[i]->getStrength() >= 1){
+                pVect[i]->uniqueAction();
+            }
+            pVect[i]->damage(proportion);
+        }
+    }
+    double getStrength() const {
+        double strength = 0;
+        for (size_t i = 0; i < pVect.size(); i++){
+            strength = strength + pVect[i]->getStrength();
+        }
+        return strength;
+    }
+    
+private:
+    vector<Protector*> pVect;
+};
+
+class PersonWithStrengthToFight : public Noble{ //polymorphism
+public:
+    PersonWithStrengthToFight(const string& name, double strength) :
+    Noble(name), strength(strength){}
+    void display() const {
+        cout << getName() << " has strength of " << strength << endl;
+    }
+    void damage(const double& proportionParam){
+        strength = strength - (proportionParam * strength);
+        if (strength < 1){
+            strength = 0;
+        }
+    }
+    void kill(){
+        strength = 0;
+        die();
+    }
+    double getStrength() const {
+        return strength;
+    }
+private:
+    double strength;
+};
+
+
+class Wizard: public Protector{
+public:
+    Wizard(const string& name, const double& str) :
+    Protector(name, str){}
+    void uniqueAction() {
+        cout << "POOF" << endl;
+    }
+};
+
+class Warrior: public Protector{
+public:
+    Warrior(const string& name , const double& str): Protector(name, str) {}
+};
+class Archer: public Warrior{
+public:
+    Archer(const string& name, const double& str): Warrior(name,str){}
+    void uniqueAction(){
+        cout << "TWANG! " << getName() << " says: Take that in the name of my lord, " << getMaster()->getName() << endl;
+    }
+};
+class Swordsmen: public Warrior{
+public:
+    Swordsmen(const string& name, const double& str ): Warrior(name, str){}
+    void uniqueAction(){
+        cout << "CLANG! " << getName() << " says: Take that in the name of my lord, " << getMaster()->getName() << endl;
+    }
+};
+
+int main(){
+    Lord sam("Sam");
+    Archer samantha("Samantha", 200);
+    sam.hires(samantha);
+    Lord joe("Joe");
+    PersonWithStrengthToFight randy("Randolf the Elder", 250);
+    joe.battle(randy);
+    joe.battle(sam);
+    Lord janet("Janet");
+    Swordsmen hardy("TuckTuckTheHardy", 100);
+    Swordsmen stout("TuckTuckTheStout", 80);
+    janet.hires(hardy);
+    janet.hires(stout);
+    PersonWithStrengthToFight barclay("Barclay the Bold", 300);
+    janet.battle(barclay);
+    janet.hires(samantha);
+    Archer pethora("Pethora", 50);
+    Archer thora("Thorapleth", 60);
+    Wizard merlin("Merlin", 150);
+    janet.hires(pethora);
+    janet.hires(thora);
+    sam.hires(merlin);
+    janet.battle(barclay);
+    sam.battle(barclay);
+    joe.battle(barclay);
+ 
+}
