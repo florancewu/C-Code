@@ -1,0 +1,157 @@
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+class Weapon {
+public:
+    Weapon(const string& name, const int& str): name (name), str(str){}
+    //accessors
+    string getName() const{
+        return name;
+    }
+    int getStr() const{
+        return str;
+    }
+    void destroy(){
+        str = 0;
+    }
+    void damage(const int& damage){
+        str = str - damage;
+    }
+private:
+    string name;
+    int str;
+};
+//done
+
+class Warrior{
+public:
+    Warrior(const string& name, const string& wepName, const int& str): name(name) , weapon(wepName,str){}
+    //accessors
+    string getName() const{
+        return name;
+    }
+    string getWeaponName() const{
+        return weapon.getName();
+    }
+    int getWeaponStr() const{
+        return weapon.getStr();
+    }
+    void die(){
+        weapon.destroy();
+    }
+    void damage(const int& hp){
+        weapon.damage(hp);
+    }
+    
+
+    
+private:
+    string name;
+    Weapon weapon; //associates with weapon class
+    
+};
+
+int findWarrior(const vector<Warrior>& warriors, const string& name){ //searches for where the warrior is located within the vector
+    for (int i = 0 ; i < warriors.size() ; i ++ ){
+        if (warriors[i].getName() == name) {
+            return i;
+        }
+    }
+    return warriors.size();
+}
+
+void createWarrior(vector<Warrior>& warriors ,const string& name, const string& weaponName, const int& str){ // stores warrior into vector after checking if it's already in the vector
+    Warrior newWarrior(name, weaponName,str);
+    int temp = findWarrior(warriors, name);
+    if (temp== warriors.size()){
+        warriors.push_back(newWarrior);
+    }
+    else {
+        
+        cout << "Warrior is already in vector" << endl;
+        
+        exit(1);
+        
+    }
+}
+void battle(Warrior& warrior1, Warrior& warrior2)  {// two warriors battle
+        cout<< warrior1.getName()<<" battles "<<warrior2.getName()<<endl;
+        if(warrior1.getWeaponStr()==0 && warrior2.getWeaponStr()==0){
+            cout <<"They are both dead!"<<endl;
+        }
+        else if(warrior1.getWeaponStr()==0){
+            cout<<warrior1.getName() <<"is dead"<<endl;
+        }
+        else if(warrior2.getWeaponStr()==0){
+            cout<<warrior2.getName()<<"is dead"<<endl;
+            
+        }
+        else if(warrior2.getWeaponStr()==warrior1.getWeaponStr()){ //strengths are =
+            warrior1.die();
+            warrior2.die();
+            cout<<"Mutual Annihilation: "<<warrior1.getName()<<" and "<<warrior2.getName()<< " die at each other's hands"<<endl;
+        }
+        else if(warrior2.getWeaponStr() > warrior1.getWeaponStr()){ //if warrior 2 wins
+            warrior2.damage(warrior1.getWeaponStr());
+            warrior1.die();
+            cout<<warrior2.getName()<<"defeats"<<warrior1.getName()<<endl;
+        }
+        else if(warrior1.getWeaponStr()>warrior2.getWeaponStr()){ //if warrior 1 wins
+            warrior1.damage(warrior2.getWeaponStr());
+            warrior2.die();
+            cout<<warrior1.getName()<<"defeats"<<warrior2.getName()<<endl;
+        }
+    
+}
+
+void status(const vector<Warrior> warriors){ //prints out the status of each warrior
+    cout << "There are " << warriors.size() << "warriors." << endl;
+    for (int i = 0; i < warriors.size() ; i++){
+        cout << "Warrior: " << warriors[i].getName() << " , Weapon: " << warriors[i].getWeaponName()
+       << "Strength: " << warriors[i].getWeaponStr() << endl;
+    }
+    
+}
+
+int main() {
+  
+    ifstream myFile;
+    myFile.open("/Users/florancewu/Desktop/Everything/C++/Homework/warriors.txt");
+    
+    if (!myFile.is_open()){
+        
+        cerr << "File does not open" << endl;
+        exit(1);
+    }
+    
+    string command , name , weaponN;
+    int strength = 0;
+    vector<Warrior> warriors;
+    while (myFile >> command){
+        
+        if (command == "Warrior") {
+            myFile >> name >> strength ;
+            createWarrior(warriors, name, weaponN, strength);
+        }
+        else if (command == "Status"){
+            status(warriors);
+            
+        }
+        else if( command == "Battle" ){
+            string warOne , warTwo;
+            int one = 0, two = 0;
+            myFile >> warOne >> warTwo;
+            one=findWarrior(warriors, warOne);
+            two = findWarrior(warriors,warTwo);
+            battle(warriors[one],warriors[two]);
+        }
+        
+    }
+    myFile.close();
+    
+    
+}
