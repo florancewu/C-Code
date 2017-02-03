@@ -1,0 +1,110 @@
+#include <iostream>
+#include <vector>
+#include <climits>
+using namespace std;
+
+void displayBinary(int i){
+	if (i < 2){
+		cout << i;
+		return;
+	}
+	displayBinary(i / 2);
+	cout << (i % 2);
+}
+
+struct Node{
+	Node(int data = 0, Node* link = nullptr) 
+		: data(data), link(link) {}
+	int data;
+	Node* link;
+};
+
+Node* listSum(Node* one, Node* two){
+	if (one == nullptr || two == nullptr) return nullptr;
+	Node* result = new Node(one->data + two->data, listSum(one->link, two->link));
+	return result;
+}
+
+struct TNode {
+	TNode(int data = 0, TNode *left = nullptr, TNode *right = nullptr)
+		: data(data), left(left), right(right) {}
+	int data;
+	TNode *left, *right;
+};
+
+int max(TNode* root) {
+	if (root == nullptr) return INT_MIN;
+	int maxLeft = max(root->left);
+	int maxRight = max(root->right);
+	if (root->data > maxLeft && root->data > maxRight){
+		return root->data;
+	}
+	else if (maxLeft > root->data && maxLeft > maxRight){
+		return maxLeft;
+	}
+	else{
+		return maxRight;
+	}
+}
+
+int sumChars(char* head){
+	if (head == nullptr) return 0;
+	if (*head == '\0') return 0;
+	return (int(*head) + sumChars(head+1));
+}
+
+char* binSearch(char target, char* head, int begin, int end){
+	if (begin > end) return nullptr;
+	int half = begin + ((end - begin) / 2);
+	if (head[half] == target){
+		return head + half;
+	}
+	else if(target > head[half]){
+		return binSearch(target, head, half + 1, end);
+	}
+	else{
+		return binSearch(target, head, begin, half - 1);
+	}
+}
+
+void func(int n) {
+	if (n > 1) {
+		cout << 'a';
+		func(n / 2);
+		cout << 'b';
+		func(n / 2);
+	}
+	cout << 'c';
+}
+
+int main() {
+	displayBinary(12);
+
+	cout << endl << endl;
+
+	Node* one = new Node(1, new Node(15, new Node(345)));
+	Node* two = new Node(265, new Node(2, new Node(21)));
+	Node* result = listSum(one, two);
+	cout << result->data << ' ' << result->link->data << ' ' << result->link->link->data;
+
+	cout << endl << endl;
+
+	TNode a(1), b(2), c(4), d(8, &a, &b), e(16, &c), f(32, &d, &e);
+	cout << max(&f);
+
+	cout << endl << endl;
+
+	char cstring[15] = "I love C++";
+	cout << sumChars(cstring);
+
+	cout << endl << endl;
+
+	char sorted[6] = "abcde";
+	cout << *(binSearch('d', sorted, 0, 6));
+
+	cout << endl << endl;
+
+	func(5);
+
+	cout << endl << endl;
+}
