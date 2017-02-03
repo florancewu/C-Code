@@ -1,0 +1,43 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+using namespace std;
+double calculateCost (map<int, double>& store, const vector<int>& purchase ){ //Problem 3
+    double total = 0.0;
+    int ele = 0;
+    for ( size_t i=0 ; i < purchase.size() ; i++){
+        ele = purchase[i];
+        total = total + store[ele];
+        
+    }
+    return total;
+    
+}
+
+int main(){
+   map<int,double> saleSys;
+    ifstream myFile;
+    myFile.open("/Users/florancewu/Downloads/HW1data.txt");
+    if ( !myFile ){
+        cout << "File cannot be opened" << endl;
+        exit(100);
+    }
+    
+    int number;
+    double price;
+    vector<int> purchList;
+    while ( myFile >> number >> price){
+        saleSys[number] = price;
+    }
+    
+    purchList.push_back(99);
+    purchList.push_back(99);
+    purchList.push_back(47);
+    purchList.push_back(22);
+    purchList.push_back(1);
+    double myTotal = calculateCost(saleSys, purchList);
+    
+    cout << "The total cost is $" << myTotal << endl;
+
+    
+}
