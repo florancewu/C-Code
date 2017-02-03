@@ -1,0 +1,287 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class Warrior;
+class Noble;
+
+class Warrior{
+public:
+    
+    Warrior(const string& name , double str): name(name) , str(str) {} //constructor
+    
+    string getName() const{ //accessor
+        return name;
+    }
+    double getStr() const{ //accessor
+        return str;
+    }
+    void display() const{ // prints status
+        cout <<"Name: "<< name <<" Strength: " << str << endl;
+    }
+    
+    void damage(const int& dmgProportion){ // changes str on warriors
+        str = str - (str * dmgProportion);
+    }
+    
+    void die() { // kills warrior by setting health to 0
+        str = 0;
+    }
+    Noble* getLeader()const{
+        return Leader;
+    }
+    
+    void fire(){
+        Leader = nullptr;
+    }
+    void hire(Noble* noblePtr){
+        Leader = noblePtr;
+    }
+    
+private:
+    string name;
+    double str;
+    Noble* Leader;
+    
+    
+};
+
+class Noble{
+public:
+    Noble(const string& name): name(name){} // constructor
+    
+    string getName() const{ // accessor
+        return name;
+    }
+    
+    double getStr()const { // accessor associated with getStr from Warrior class
+        double str = 0;
+        for (size_t i = 0; i < army.size() ; i++){
+            str = str + army[i]->getStr();
+        }
+        return str;
+    }
+    
+    
+    void hire( Warrior& warrior){
+        // adds warrior to army vector
+        army.push_back(&warrior);
+        warrior.hire(this);
+    }
+
+    
+    void fire(Warrior& warriorP){ // removes warrior from army vector
+        
+        for (size_t i = 0 ; i < army.size() ; i++){
+            if (&warriorP == army[i]){
+                
+                army[i]= army[(army.size()-1)];
+                army.pop_back();
+                cout << warriorP.getName() << " is fired. " << endl;
+                warriorP.fire();
+            }
+        }
+    }
+    void display()const { // prints status
+        cout << name << " has an army of " << army.size() << ": " << endl;
+        for ( size_t i = 0 ; i <army.size(); i ++){
+            army[i]->display();
+        }
+    }
+    void die() const{ // kills entire army
+        for ( size_t i = 0 ; i <army.size(); i ++){
+            army[i]->die();
+        }
+    }
+    void damage(Noble& opponent) const{ // changes health of warriors in army vector
+        
+        double dmg = opponent.getStr();
+        double ratio = dmg / getStr();
+        for ( size_t i = 0 ; i < army.size() ; i++) {
+            army[i]->damage(ratio);
+        }
+        
+    }
+    
+    void battle(Noble& enemy) const{
+        
+        cout << name << " battles " << enemy.name << endl;
+        double ourStr = getStr();
+        double enemyStr= enemy.getStr();
+        if ( ourStr == 0 && enemyStr == 0) {
+            cout << "Oh, NO!  They're both dead!  Yuck!" << endl;
+            
+        }
+        else if ( ourStr == enemyStr) {
+            die();
+            enemy.die();
+            cout << "Mutual Annihalation: " << name << " and "<< enemy.getName()<< " die at each other's hands. " << endl;
+        }
+        else if (ourStr == 0){
+            cout << name << " is already dead." << endl;
+        }
+        else if (enemyStr == 0){
+            cout << enemy.getName() << "is already dead." << endl;
+        }
+        else if( enemyStr > ourStr) {
+            die();
+            cout << enemy.getName() << " defeats " << name << endl;
+        }
+        else {
+            damage(enemy);
+            enemy.die();
+            cout << name << " defeats " << enemy.getName() << endl;
+        }
+        
+        
+    }
+
+    
+    
+private:
+    const string name;
+    vector<Warrior*> army;
+    
+};
+
+int findNoble(const vector<Noble*>& nobles, const string& name){	// Returns either index of noble or size of the vector
+    for (size_t mm = 0; mm < nobles.size(); ++mm){
+        if (nobles[mm]->getName() == name){
+            return mm;
+        }
+    }
+    return nobles.size();
+}
+
+int findWarrior(vector<Warrior*>& warriors , const string& name) {
+    for(size_t mm = 0; mm < warriors.size() ; mm ++){
+        if ( warriors[mm]->getName() == name){
+            return mm;
+        }
+    }
+    return warriors.size();
+}
+
+void fight(vector<Noble*>& nobles, vector<Warrior*>& warriors, const string& noble, const string& opponent) {
+    int nobleIndex = findNoble(nobles, noble);
+    int oppIndex = findNoble(nobles, opponent);
+    if (nobleIndex != nobles.size() && oppIndex != nobles.size()){
+        nobles[nobleIndex]->battle(*nobles[oppIndex]);
+    }
+    else{
+        cout<< " A noble cannot battle themself" <<endl;
+    }
+    
+}
+
+int main() {
+    ifstream myFile;
+    myFile.open("/Users/florancewu/Desktop/Everything/C++/CS1124 HW4/CS1124 HW4/nobleWarriors.txt");
+    if (!myFile){
+        cout << "Error! File does not open." << endl;
+        exit(1);
+    }
+    vector<Noble*> Nobles;
+    vector<Warrior*>  Warriors;
+    string command;
+    string name;
+    string name2;
+    int str = 0;
+    
+    while(myFile>>command){
+        if (command=="Noble"){
+            myFile >> name;
+            if( findNoble(Nobles, name) == Nobles.size()){ // not in vector
+                    Noble* noblePtr = new Noble(name);
+                    Nobles.push_back(noblePtr);
+                }
+            }
+
+        if (command == "Warrior"){
+            myFile >> name >> str;
+            if (findWarrior(Warriors, name) == Warriors.size()){
+                Warrior* warriorPtr= new Warrior(name, str);
+                Warriors.push_back(warriorPtr);
+            }
+        
+        }
+        if( command == "Hire"){
+            myFile >>name>>name2;
+            int eleWar = findWarrior(Warriors, name2);
+            int eleNob = findNoble(Nobles, name);
+            if (eleWar != Warriors.size()){ // checks if warrior exists
+                    if(eleNob != Nobles.size()){ // checks if Noble exists
+                        Nobles[eleNob]->hire(*Warriors[eleWar]);
+                        }
+                    else{
+                        cout << "Error. This Noble does not exist" << endl;
+                    }
+            }
+            else{
+                cout<< "Error. This Warrior does not exist" << endl;
+                
+                
+                }
+            }
+    
+    if (command == "Fire" ) {
+        myFile >>name>>name2;
+        int eleWar = findWarrior(Warriors, name2);
+        int eleNob = findNoble(Nobles, name);
+        if (eleWar != Warriors.size()){ // checks if warrior exists
+            if(eleNob != Nobles.size()){ // checks if Noble exists
+                Nobles[eleNob]->fire(*Warriors[eleWar]);
+                
+            }
+            else{
+                cout << "Error. This Noble does not exist" << endl;
+            }
+        }
+        else{
+            cout<< "Error. This Warrior does not exist" << endl;
+            
+            
+        }
+    }
+    if ( command == "Battle") {
+        myFile >> name >> name2;
+        fight(Nobles, Warriors , name , name2);
+        
+    }
+    if( command == "Status") {
+        cout << "Status" << endl << "======" << endl <<  "Nobles:" << endl;
+        for ( size_t ll = 0 ; ll < Nobles.size() ; ll ++ ){
+            Nobles[ll] ->display();
+        }
+        if (Nobles.size() == 0){
+            cout << "NONE" << endl;
+        }
+        cout << "Unemployed Warriors:" << endl;
+        unsigned count = 0;
+        for (size_t i = 0; i < Warriors.size(); i++){
+            if (Warriors[i]->getLeader() == nullptr){ // checks to see if they're hired
+                Warriors[i]->display();
+                cout << endl;
+                ++count;
+            }
+        }
+        if (count == 0){
+            cout << "NONE" << endl;
+        }
+    }
+    if ( command == "Clear"){
+        for ( size_t jj = 0 ; jj < Nobles.size() ; jj++){
+            delete Nobles[jj];
+        }
+        Nobles.clear();
+        for ( size_t aa = 0 ; aa < Warriors.size() ; aa++){
+            delete Warriors[aa];
+        }
+        Warriors.clear();
+
+    }
+}
+}
