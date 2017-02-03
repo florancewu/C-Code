@@ -1,0 +1,167 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+
+class Warrior{
+public:
+    
+    Warrior(const string& name , double str): name(name) , str(str) {} //constructor
+    
+    string getName() const{ //accessor
+        return name;
+    }
+    double getStr() const{ //accessor
+        return str;
+    }
+    void display() const{ // prints status
+        cout <<"Name: "<< name <<" Strength: " << str << endl;
+    }
+
+    void damage(const int& dmgProportion){ // changes str on warriors
+        str = str - (str * dmgProportion);
+    }
+    
+    void die() { // kills warrior by setting health to 0
+        str = 0;
+    }
+    
+private:
+    string name;
+    double str;
+    
+    
+};
+
+class Noble{
+public:
+    Noble(const string& name): name(name){} // constructor
+    
+    string getName() const{ // accessor
+        return name;
+    }
+
+    double getStr()const { // accessor associated with getStr from Warrior class
+        double str = 0;
+        for (size_t i = 0; i < army.size() ; i++){
+            str = str + army[i]->getStr();
+        }
+        return str;
+    }
+    
+    
+    void hire(Warrior& warriorP){ // adds warrior to army vector
+        army.push_back(&warriorP);
+    }
+    
+    void fire(Warrior& warriorP){ // removes warrior from army vector
+        
+        for (size_t i = 0 ; i < army.size() ; i++){
+            if (&warriorP == army[i]){
+                
+                army[i]= army[(army.size()-1)];
+                army.pop_back();
+                cout << warriorP.getName() << " is fired. " << endl;
+                
+            }
+        }
+    }
+    void display()const { // prints status
+        cout << name << " has an army of " << army.size() << ": " << endl;
+        for ( size_t i = 0 ; i <army.size(); i ++){
+            army[i]->display();
+        }
+    }
+    void die() const{ // kills entire army
+        for ( size_t i = 0 ; i <army.size(); i ++){
+            army[i]->die();
+        }
+    }
+    void damage(Noble& opponent) const{ // changes health of warriors in army vector
+        
+        double dmg = opponent.getStr();
+        double ratio = dmg / getStr();
+        for ( size_t i = 0 ; i < army.size() ; i++) {
+            army[i]->damage(ratio);
+        }
+        
+    }
+    
+    void battle(Noble& enemy) const{
+        
+        cout << name << " battles " << enemy.name << endl;
+        double ourStr = getStr();
+        double enemyStr= enemy.getStr();
+        if ( ourStr == 0 && enemyStr == 0) {
+            cout << "Oh, NO!  They're both dead!  Yuck!" << endl;
+           
+        }
+        else if ( ourStr == enemyStr) {
+            die();
+            enemy.die();
+            cout << "Mutual Annihalation: " << name << " and "<< enemy.getName()<< " die at each other's hands. " << endl;
+        }
+        else if (ourStr == 0){
+            cout << name << " is already dead." << endl;
+        }
+        else if (enemyStr == 0){
+            cout << enemy.getName() << "is already dead." << endl;
+        }
+        else if( enemyStr > ourStr) {
+            die();
+            cout << enemy.getName() << " defeats " << name << endl;
+        }
+        else {
+            damage(enemy);
+            enemy.die();
+            cout << name << " defeats " << enemy.getName() << endl;
+        }
+        
+        
+    }
+    
+private:
+    const string name;
+    vector<Warrior*> army;
+    
+};
+
+int main() {
+    Noble art("King Arthur");
+    Noble lance("Lancelot du Lac");
+    Noble jim("Jim");
+    Noble linus("Linus Torvalds");
+    Noble billie("Bill Gates");
+    
+    Warrior cheetah("Tarzan", 10.0);
+    Warrior wizard("Merlin", 15);
+    Warrior theGovernator("Conan", 12);
+    Warrior nimoy("Spock", 15);
+    Warrior lawless("Xena", 20);
+    Warrior mrGreen("Hulk", 8);
+    Warrior dylan("Hercules", 3);
+    
+    jim.hire(nimoy);
+    lance.hire(theGovernator);
+    art.hire(wizard);
+    lance.hire(dylan);
+    linus.hire(lawless);
+    billie.hire(mrGreen);
+    art.hire(cheetah);
+    
+    jim.display();
+    lance.display();
+    art.display();
+    linus.display();
+    billie.display();
+    
+    art.fire(cheetah);
+    art.display();
+    
+    art.battle(lance);
+    jim.battle(lance);
+    linus.battle(billie);
+    billie.battle(lance);
+}
