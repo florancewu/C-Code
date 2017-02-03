@@ -1,0 +1,81 @@
+#include <iostream>
+using namespace std;
+
+template <class T> 
+class DynArray{
+public:
+    DynArray(size_t cap):capacity(cap),size(0) , restricted(false) {} //parameter constructor
+    DynArray():capacity(4), size(0) , restricted(false){ // default constructor
+        data = new T[4];
+    }
+    ~DynArray(){
+        delete []data;
+    }
+    DynArray(DynArray <T> const &rhs){ //copy constructor
+        size = rhs.size;
+        capacity = rhs.capacity;
+        data = new T[capacity];
+        restricted = rhs.restricted;
+        for (size_t i=0 ; i < size; i++){
+            data[i] = rhs.data[i];
+        }
+    }
+    DynArray& operator= (const DynArray <T> &rhs){
+        if( this!=rhs){
+            if( data != nullptr){
+                delete []data;
+            }
+            data = new T[rhs.capacity];
+            size = rhs.size;
+            restricted = rhs.restricted;
+            for (size_t i=0 ; i < size; i++){
+                data[i] = rhs.data[i];
+            }
+        }
+    }
+    void resize(){
+        
+            DynArray<T> temp = new T[2*capacity];
+            for (size_t i = 0; i < size ; i++){
+                temp.data[i] = data[i];
+            }
+            delete []data;
+            data = temp;
+            capacity = 2*capacity;
+    
+        
+    }
+    void push_back(T object){
+        if( !restricted ){
+            if (size+1 <= capacity){
+                data[size] = object;
+            }
+            else{
+                resize();
+                data[size] = object;
+            }
+            size++ ;
+        }
+    }
+    
+    void pop_back(){
+        size = size - 1;
+    }
+    
+    DynArray& operator [](int element){
+        if(element < size) {
+            restricted = true;
+            return data[element];
+        }
+        else{
+            cout << "This element does not exist." << endl;
+            exit(1);
+        }
+    }
+  
+private:
+    T* data;
+    size_t size;
+    size_t capacity;
+    bool restricted;
+};
